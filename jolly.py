@@ -1,19 +1,28 @@
-10038 jolly jumper
+#10038 jolly jumper
 
-while True:
-	try:
-		a = list(map(int, input().split()))
-	except EOFError:
-		break
-		
-	n = [0 for i in range(3001)]
-	
-	for i in range(2, len(a)):
-		m = abs(a[i] - a[i-1])
-		if n[m] == 0 and m > 0 and m < a[0]:
-			n[m] = 1
-		
-	if sum(n) == a[0] - 1:
-		print("Jolly")
-	else:
-		print("Not jolly")
+
+def is_jolly(seq):
+    n = len(seq)
+    diffs = [abs(seq[i] - seq[i+1]) for i in range(n-1)]
+    return set(diffs) == set(range(1, n))
+
+def main():
+    try:
+        while True:
+            input_line = input().strip()
+            if not input_line:
+                break
+
+            elements = list(map(int, input_line.split()))
+            n, sequence = elements[0], elements[1:]
+
+            result = is_jolly(sequence)
+            if result:
+                print("Jolly")
+            else:
+                print("Not jolly")
+    except :
+        print("some error occured")
+
+if __name__ == "__main__":
+    main()

@@ -1,91 +1,38 @@
-from sklearn import datasets
-X, y = datasets.make_blobs(n_samples=150,n_features=2,
-                           centers=2,cluster_std=1.05,
-                           random_state=2)
-#Plotting
-fig = plt.figure(figsize=(10,8))
-plt.plot(X[:, 0][y == 0], X[:, 1][y == 0], 'r^')
-plt.plot(X[:, 0][y == 1], X[:, 1][y == 1], 'bs')
-plt.xlabel("feature 1")
-plt.ylabel("feature 2")
-plt.title('Random Classification Data with 2 classes')
+import numpy as np
 
-def step_func(z):
-        return 1.0 if (z > 0) else 0.0
+class Perceptron:
+    def __init__(self, num_features, learning_rate=0.01, max_epochs=100):
+        self.num_features = num_features
+        self.learning_rate = learning_rate
+        self.max_epochs = max_epochs
+        self.weights = np.random.rand(num_features)
+        self.bias = np.random.rand()
 
-def perceptron(X, y, lr, epochs):
-    
-    # X --> Inputs.
-    # y --> labels/target.
-    # lr --> learning rate.
-    # epochs --> Number of iterations.
-    
-    # m-> number of training examples
-    # n-> number of features 
-    m, n = X.shape
-    
-    # Initializing parapeters(theta) to zeros.
-    # +1 in n+1 for the bias term.
-    theta = np.zeros((n+1,1))
-    
-    # Empty list to store how many examples were 
-    # misclassified at every iteration.
-    n_miss_list = []
-    
-    # Training.
-    for epoch in range(epochs):
-        
-        # variable to store #misclassified.
-        n_miss = 0
-        
-        # looping for every example.
-        for idx, x_i in enumerate(X):
-            
-            # Insering 1 for bias, X0 = 1.
-            x_i = np.insert(x_i, 0, 1).reshape(-1,1)
-            
-            # Calculating prediction/hypothesis.
-            y_hat = step_func(np.dot(x_i.T, theta))
-            
-            # Updating if the example is misclassified.
-            if (np.squeeze(y_hat) - y[idx]) != 0:
-                theta += lr*((y[idx] - y_hat)*x_i)
-                
-                # Incrementing by 1.
-                n_miss += 1
-        
-        # Appending number of misclassified examples
-        # at every iteration.
-        n_miss_list.append(n_miss)
-        
-    return theta, n_miss_list
+    def predict(self, x):
+        weighted_sum = np.dot(self.weights, x) + self.bias
+        return 1 if weighted_sum >= 0 else -1
 
+    def train(self, X, y):
+        for _ in range(self.max_epochs):
+            errors = 0
+            for xi, target in zip(X, y):
+                prediction = self.predict(xi)
+                update = self.learning_rate * (target - prediction)
+                self.weights += update * xi
+                self.bias += update
+                errors += int(update != 0.0)
+            if errors == 0:
+                break
 
-def plot_decision_boundary(X, theta):
-    
-    # X --> Inputs
-    # theta --> parameters
-    
-    # The Line is y=mx+c
-    # So, Equate mx+c = theta0.X0 + theta1.X1 + theta2.X2
-    # Solving we find m and c
-    x1 = [min(X[:,0]), max(X[:,0])]
-    m = -theta[1]/theta[2]
-    c = -theta[0]/theta[2]
-    x2 = m*x1 + c
-    
-    # Plotting
-    fig = plt.figure(figsize=(10,8))
-    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "r^")
-    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs")
-    plt.xlabel("feature 1")
-    plt.ylabel("feature 2")
-    plt.title(’Perceptron Algorithm’)
-    plt.plot(x1, x2, 'y-')
+# Example usage
+X = np.array([[2, 3], [1, 2], [3, 5], [2, 4], [5, 1], [4, 2]])
+y = np.array([1, -1, 1, -1, 1, -1])
 
+perceptron = Perceptron(num_features=2)
+perceptron.train(X, y)
 
-theta, miss_l = perceptron(X, y, 0.5, 100)
-plot_decision_boundary(X, theta)
-
-
-
+# Test the trained perceptron
+test_data = np.array([[3, 4], [1, 1], [4, 3]])
+for xi in test_data:
+    prediction = perceptron.predict(xi)
+    print(f"Input: {xi}, Predicted Class: {prediction}")
